@@ -1,0 +1,119 @@
+name: API tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Daily. The value of these tests is catching the provider changing under us,
+    # which does not happen on our commits.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+env:
+  # Restful-Booker's credentials are published in its own documentation, so they
+  # are not secrets. They still arrive as environment variables rather than
+  # sitting in config.properties, because the mechanism is what is being proven
+  # - point BASE_URL at a private instance and the same workflow keeps working
+  # with repository secrets substituted here and nothing else changed.
+  BOOKER_USERNAME: ${{ vars.BOOKER_USERNAME || 'admin' }}
+  BOOKER_PASSWORD: ${{ secrets.BOOKER_PASSWORD || 'password123' }}
+  BASE_URL: ${{ vars.BASE_URL || 'https://restful-booker.herokuapp.com' }}
+
+jobs:
+  # Cheap and offline-ish. Fails in seconds on the mistake that is easiest to
+  # make and hardest to see: a test class nobody added to a suite.
+  suite-coverage:
+    name: Suite coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every test class is reachable from a suite
+        run: bash scripts/verify-suite-coverage.sh
+
+  smoke:
+    name: Smoke (read-only, no credentials)
+    runs-on: ubuntu-latest
+    needs: suite-coverage
+    env:
+      # Explicitly blanked. The smoke suite must run with no credentials at all;
+      # if it ever starts needing them, this job is where that shows up.
+      BOOKER_USERNAME: ''
+      BOOKER_PASSWORD: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Wake the dyno
+        # Free-tier Heroku sleeps. Waking it here rather than inside a test keeps
+        # the cold-start cost out of the first assertion's timing.
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 "$BASE_URL/ping" || true)
+            echo "attempt $i: HTTP ${code:-none}"
+            [ -n "$code" ] && [ "$code" != "000" ] && exit 0
+            sleep 10
+          done
+          echo "::warning::the target never answered /ping; the suite will report the real error"
+
+      - run: mvn -B -Psmoke test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-smoke
+          path: target/allure-results
+          if-no-files-found: warn
+
+  regression:
+    name: Regression (creates and cleans up bookings)
+    runs-on: ubuntu-latest
+    needs: smoke
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - run: mvn -B test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-regression
+          path: target/allure-results
+          if-no-files-found: warn
+
+      - name: Surface any bookings cleanup could not delete
+        if: always()
+        run: grep -E 'Cleanup' target/api-tests.log || echo 'no cleanup activity logged'
+
+  contract:
+    name: Pact consumer contract
+    runs-on: ubuntu-latest
+    needs: suite-coverage
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      # Separate job, separate profile. Pact is JUnit 5 only and the default run
+      # is TestNG; putting both providers in one surefire execution means one of
+      # them silently runs nothing.
+      - run: mvn -B -Pcontract test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pacts
+          path: pacts
+          if-no-files-found: error

@@ -28,6 +28,14 @@
     <classes>
       <class name="com.adarsh.tests.booking.CreateBookingTest"/>
       <class name="com.adarsh.tests.booking.ReadBookingTest"/>
+      <class name="com.adarsh.tests.booking.UpdateDeleteBookingTest"/>
+    </classes>
+  </test>
+  <!-- Deliberately larger than the happy path: this is where the findings live. -->
+  <test name="negative">
+    <classes>
+      <class name="com.adarsh.tests.booking.BookingValidationTest"/>
+      <class name="com.adarsh.tests.booking.ContentNegotiationTest"/>
     </classes>
   </test>
 </suite>
