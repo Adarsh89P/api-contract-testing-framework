@@ -39,7 +39,13 @@ public final class SpecFactory {
         RequestSpecBuilder builder = new RequestSpecBuilder()
                 .setBaseUri(ConfigReader.baseUrl())
                 .setContentType(ContentType.JSON)
-                .setAccept(ContentType.JSON)
+                // Deliberately the bare string, not ContentType.JSON. Rest-Assured
+                // expands ContentType.JSON into "application/json,
+                // application/javascript, text/javascript, text/json", and this API
+                // answers 418 I'm a Teapot to any Accept listing a type it does not
+                // serve - even when application/json is also present and acceptable.
+                // See FINDINGS-9; AcceptHeaderTest pins the behaviour.
+                .setAccept("application/json")
                 .setConfig(restAssuredConfig(config))
                 .addFilter(ALLURE_FILTER);
 

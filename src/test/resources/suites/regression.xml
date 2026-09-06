@@ -24,4 +24,10 @@
       <class name="com.adarsh.tests.auth.AuthTest"/>
     </classes>
   </test>
+  <test name="booking">
+    <classes>
+      <class name="com.adarsh.tests.booking.CreateBookingTest"/>
+      <class name="com.adarsh.tests.booking.ReadBookingTest"/>
+    </classes>
+  </test>
 </suite>

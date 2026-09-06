@@ -162,6 +162,8 @@
           </excludes>
           <systemPropertyVariables>
             <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+            <!-- log4j2.xml lives under config/, not at the classpath root. -->
+            <log4j2.configurationFile>config/log4j2.xml</log4j2.configurationFile>
           </systemPropertyVariables>
         </configuration>
       </plugin>
