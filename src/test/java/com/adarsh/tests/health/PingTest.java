@@ -32,6 +32,20 @@ public class PingTest {
                 "ping took " + response.getTime() + "ms; the dyno may still be waking");
     }
 
+    @Test(description = "/ping answers in plain text, so there is no schema to apply")
+    @Description("Recorded rather than asserted away: every other endpoint in this "
+            + "framework is schema-checked, and /ping is the documented exception "
+            + "because its body is the bare word Created, not JSON.")
+    public void pingBodyIsPlainTextNotJson() {
+        Response response = given().spec(SpecFactory.json()).when().get(Endpoints.PING)
+                .then().extract().response();
+
+        assertTrue(response.getContentType() == null
+                        || !response.getContentType().contains("json"),
+                "/ping started returning JSON (" + response.getContentType()
+                        + "); it now needs a schema like everything else");
+    }
+
     @Test(description = "GET /ping answers 201 Created, which is wrong for a health probe")
     @Issue("FINDINGS-1")
     @Description("Pinned as a characterisation test. A health check creates nothing, "

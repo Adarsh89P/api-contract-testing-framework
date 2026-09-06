@@ -11,6 +11,7 @@
     <classes>
       <class name="com.adarsh.tests.config.ConfigPrecedenceTest"/>
       <class name="com.adarsh.tests.models.BookingModelTest"/>
+      <class name="com.adarsh.tests.schema.SchemaGuardTest"/>
     </classes>
   </test>
   <test name="health">

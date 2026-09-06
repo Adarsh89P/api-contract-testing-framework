@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "BookingIds",
+  "description": "Body of GET /booking and its filtered forms. An empty array is valid - a filter that matches nothing is not an error.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["bookingid"],
+    "additionalProperties": false,
+    "properties": {
+      "bookingid": { "type": "integer", "minimum": 1 }
+    }
+  }
+}

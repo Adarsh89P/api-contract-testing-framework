@@ -7,6 +7,7 @@ import com.adarsh.core.Endpoints;
 import com.adarsh.core.SpecFactory;
 import com.adarsh.models.AuthToken;
 import com.adarsh.models.Credentials;
+import com.adarsh.utils.SchemaValidator;
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Issue;
@@ -37,8 +38,15 @@ public class AuthTest {
     @Test(description = "valid credentials yield a token")
     @Severity(SeverityLevel.BLOCKER)
     public void validCredentialsReturnAToken() {
-        String token = AuthManager.authenticate(ConfigReader.credentials());
+        Response response = given()
+                .spec(SpecFactory.json())
+                .body(ConfigReader.credentials())
+                .when()
+                .post(Endpoints.AUTH);
 
+        SchemaValidator.assertMatches(response, SchemaValidator.AUTH_TOKEN);
+
+        String token = response.as(AuthToken.class).token();
         assertNotNull(token);
         assertTrue(token.matches("[A-Za-z0-9]{10,}"),
                 "expected an opaque alphanumeric token, got: " + token);
@@ -62,6 +70,8 @@ public class AuthTest {
         assertEquals(response.statusCode(), 200,
                 "known defect FINDINGS-2 may be fixed; /auth now returns "
                         + response.statusCode() + ". Update this test and FINDINGS.md.");
+
+        SchemaValidator.assertMatches(response, SchemaValidator.AUTH_TOKEN);
 
         AuthToken body = response.as(AuthToken.class);
         assertNull(body.token(), "a rejected login must not carry a token");
@@ -93,6 +103,7 @@ public class AuthTest {
                 .post(Endpoints.AUTH);
 
         assertEquals(response.statusCode(), 200);
+        SchemaValidator.assertMatches(response, SchemaValidator.AUTH_TOKEN);
         assertEquals(response.as(AuthToken.class).reason(), "Bad credentials");
     }
 

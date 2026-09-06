@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "BookingCreated",
+  "description": "Body of POST /booking: the new id plus an echo of the stored booking. The booking shape is inlined rather than $ref'd to a sibling file, because classpath-relative $ref resolution is the first thing to break when these tests run from a shaded jar.",
+  "type": "object",
+  "required": ["bookingid", "booking"],
+  "additionalProperties": false,
+  "properties": {
+    "bookingid": { "type": "integer", "minimum": 1 },
+    "booking": {
+      "type": "object",
+      "required": ["firstname", "lastname", "totalprice", "depositpaid", "bookingdates"],
+      "additionalProperties": false,
+      "properties": {
+        "firstname": { "type": "string", "minLength": 1 },
+        "lastname": { "type": "string", "minLength": 1 },
+        "totalprice": { "type": "integer" },
+        "depositpaid": { "type": "boolean" },
+        "bookingdates": {
+          "type": "object",
+          "required": ["checkin", "checkout"],
+          "additionalProperties": false,
+          "properties": {
+            "checkin": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+            "checkout": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+          }
+        },
+        "additionalneeds": { "type": "string" }
+      }
+    }
+  }
+}

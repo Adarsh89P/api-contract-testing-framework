@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "AuthResponse",
+  "description": "Body of POST /auth. The endpoint returns HTTP 200 for both outcomes, so the body is the only thing that distinguishes them - which is exactly why this schema needs oneOf and why a status-code assertion tests nothing here. Success carries token and only token; failure carries reason and only reason. A body with both, or with neither, is a contract break that no status assertion would ever notice.",
+  "type": "object",
+  "oneOf": [
+    {
+      "title": "issued",
+      "required": ["token"],
+      "additionalProperties": false,
+      "properties": {
+        "token": { "type": "string", "minLength": 1 }
+      }
+    },
+    {
+      "title": "rejected",
+      "required": ["reason"],
+      "additionalProperties": false,
+      "properties": {
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  ]
+}

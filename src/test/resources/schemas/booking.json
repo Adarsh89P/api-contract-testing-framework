@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Booking",
+  "description": "Body of GET /booking/{id} and PUT/PATCH /booking/{id}.",
+  "type": "object",
+  "required": ["firstname", "lastname", "totalprice", "depositpaid", "bookingdates"],
+  "additionalProperties": false,
+  "properties": {
+    "firstname": { "type": "string", "minLength": 1 },
+    "lastname": { "type": "string", "minLength": 1 },
+    "totalprice": {
+      "description": "integer, not number: a price that arrives as 100.0 or as \"100\" is a contract break, and 'number' would accept the first while a loose schema would accept both.",
+      "type": "integer"
+    },
+    "depositpaid": {
+      "description": "boolean, not string: \"true\" is a different value from true and must not pass.",
+      "type": "boolean"
+    },
+    "bookingdates": {
+      "type": "object",
+      "required": ["checkin", "checkout"],
+      "additionalProperties": false,
+      "properties": {
+        "checkin": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "checkout": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+      }
+    },
+    "additionalneeds": { "type": "string" }
+  }
+}
