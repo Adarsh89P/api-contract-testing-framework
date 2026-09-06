@@ -8,9 +8,10 @@
   <listeners>
     <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
   </listeners>
-  <test name="config">
+  <test name="offline">
     <classes>
       <class name="com.adarsh.tests.config.ConfigPrecedenceTest"/>
+      <class name="com.adarsh.tests.models.BookingModelTest"/>
     </classes>
   </test>
 </suite>
