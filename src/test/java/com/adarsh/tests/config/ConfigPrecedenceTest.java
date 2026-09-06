@@ -7,9 +7,12 @@ import io.qameta.allure.Feature;
 import org.aeonbits.owner.Config;
 import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.expectThrows;
@@ -24,12 +27,38 @@ public class ConfigPrecedenceTest {
 
     private static final String URL_KEY = "BASE_URL";
 
+    private static final List<String> MUTATED_KEYS =
+            List.of(URL_KEY, "BOOKER_USERNAME", "BOOKER_PASSWORD");
+
+    private final Map<String, String> originals = new HashMap<>();
+
+    /**
+     * These tests mutate real system properties, which are global to the forked
+     * JVM. Restoring rather than clearing matters: a run started with
+     * {@code -DBASE_URL=...} would otherwise have that override silently wiped
+     * here and every later test would quietly hit the wrong host.
+     */
+    @BeforeMethod(alwaysRun = true)
+    public void captureOverrides() {
+        originals.clear();
+        MUTATED_KEYS.forEach(key -> originals.put(key, System.getProperty(key)));
+    }
+
     @AfterMethod(alwaysRun = true)
-    public void clearOverrides() {
-        System.clearProperty(URL_KEY);
-        System.clearProperty("BOOKER_USERNAME");
-        System.clearProperty("BOOKER_PASSWORD");
+    public void restoreOverrides() {
+        originals.forEach((key, value) -> {
+            if (value == null) {
+                System.clearProperty(key);
+            } else {
+                System.setProperty(key, value);
+            }
+        });
         ConfigReader.reload();
+    }
+
+    /** True when this run was launched with an override for {@code key}. */
+    private boolean overriddenExternally(String key) {
+        return originals.get(key) != null || System.getenv(key) != null;
     }
 
     @Test(description = "load policy is MERGE, not Owner's FIRST default")
@@ -53,9 +82,9 @@ public class ConfigPrecedenceTest {
 
     @Test(description = "properties file supplies the value when nothing overrides it")
     public void fileValueIsUsedWhenNoOverridePresent() {
-        if (System.getenv(URL_KEY) != null) {
-            throw new SkipException("BASE_URL is set in this environment and correctly "
-                    + "outranks the file; environmentVariableIsConsultedBeforeFile covers that case");
+        if (overriddenExternally(URL_KEY)) {
+            throw new SkipException("BASE_URL was overridden for this run and correctly "
+                    + "outranks the file; the -D and env cases are covered by their own tests");
         }
         // BASE_URL has no @DefaultValue, so a non-null value here can only have
         // come from config/config.properties.
@@ -75,6 +104,9 @@ public class ConfigPrecedenceTest {
             + "given; CI sets one. With no BASE_URL in the environment the assertion "
             + "falls back to the file value, which is the same code path.")
     public void environmentVariableIsConsultedBeforeFile() {
+        if (originals.get(URL_KEY) != null) {
+            throw new SkipException("a -D override outranks the environment, by design");
+        }
         String fromEnv = System.getenv(URL_KEY);
         String expected = fromEnv != null && !fromEnv.isBlank()
                 ? fromEnv
@@ -91,9 +123,10 @@ public class ConfigPrecedenceTest {
 
     @Test(description = "missing credentials fail loudly, and only when asked for")
     public void credentialsResolveLazilyAndReportClearly() {
-        assertEquals(System.getProperty("BOOKER_PASSWORD"), null,
-                "precondition: no credential override in this test");
-        if (System.getenv("BOOKER_USERNAME") == null) {
+        if (!overriddenExternally("BOOKER_USERNAME")) {
+            System.clearProperty("BOOKER_USERNAME");
+            System.clearProperty("BOOKER_PASSWORD");
+            ConfigReader.reload();
             IllegalStateException thrown =
                     expectThrows(IllegalStateException.class, ConfigReader::credentials);
             assertTrue(thrown.getMessage().contains("BOOKER_USERNAME"),

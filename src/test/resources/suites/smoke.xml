@@ -14,4 +14,9 @@
       <class name="com.adarsh.tests.models.BookingModelTest"/>
     </classes>
   </test>
+  <test name="health">
+    <classes>
+      <class name="com.adarsh.tests.health.PingTest"/>
+    </classes>
+  </test>
 </suite>
