@@ -1,0 +1,13 @@
+target/
+allure-results/
+allure-report/
+pacts/
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+*.log
+.env
+src/test/resources/config/local.properties
