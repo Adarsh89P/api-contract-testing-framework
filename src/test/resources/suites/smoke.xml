@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  Read-only. Runs against a shared public API with no credentials configured and
+  creates nothing, so it is safe to point at any environment.
+-->
+<suite name="smoke" verbose="0" parallel="false">
+  <listeners>
+    <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+  </listeners>
+  <test name="config">
+    <classes>
+      <class name="com.adarsh.tests.config.ConfigPrecedenceTest"/>
+    </classes>
+  </test>
+</suite>

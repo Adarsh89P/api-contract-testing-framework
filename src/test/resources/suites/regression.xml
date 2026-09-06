@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  Full run. Creates bookings, so it needs BOOKER_USERNAME and BOOKER_PASSWORD.
+-->
+<suite name="regression" verbose="0" parallel="false">
+  <listeners>
+    <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+  </listeners>
+  <test name="config">
+    <classes>
+      <class name="com.adarsh.tests.config.ConfigPrecedenceTest"/>
+    </classes>
+  </test>
+</suite>

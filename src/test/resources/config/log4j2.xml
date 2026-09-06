@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level [%t] %logger{1} - %msg%n"/>
+    </Console>
+    <File name="File" fileName="target/api-tests.log" append="false">
+      <PatternLayout pattern="%d{ISO8601} %-5level [%t] %logger - %msg%n"/>
+    </File>
+  </Appenders>
+  <Loggers>
+    <Logger name="com.adarsh" level="INFO"/>
+    <Root level="WARN">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Root>
+  </Loggers>
+</Configuration>
