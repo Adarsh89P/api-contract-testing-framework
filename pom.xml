@@ -39,6 +39,19 @@
   -->
   <dependencyManagement>
     <dependencies>
+      <!--
+        Pact drags in an older junit-jupiter-api than the engine declared below.
+        Without the BOM the platform boots an engine whose API is missing classes
+        it links against, and surefire reports it only as
+        "TestEngine with ID 'junit-jupiter' failed to discover tests".
+      -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
