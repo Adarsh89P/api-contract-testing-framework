@@ -18,4 +18,9 @@
       <class name="com.adarsh.tests.health.PingTest"/>
     </classes>
   </test>
+  <test name="auth">
+    <classes>
+      <class name="com.adarsh.tests.auth.AuthTest"/>
+    </classes>
+  </test>
 </suite>

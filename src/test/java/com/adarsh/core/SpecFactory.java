@@ -49,6 +49,15 @@ public final class SpecFactory {
         return builder.build();
     }
 
+    /**
+     * Authenticated request. Restful-Booker reads the token from a cookie named
+     * {@code token}, not from an {@code Authorization} header - an API quirk
+     * rather than a mistake, which is why there is no bearer variant here.
+     */
+    public static RequestSpecification authenticated() {
+        return json().cookie("token", AuthManager.token());
+    }
+
     /** Baseline response expectations: JSON content type and a sane latency ceiling. */
     public static ResponseSpecification jsonResponse(int expectedStatus) {
         return new ResponseSpecBuilder()
